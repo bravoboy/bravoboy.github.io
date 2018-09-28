@@ -1,9 +1,10 @@
 ---
 layout: post
-title:  "rocksdb memtable_prefix_bloom_size_ratio"
+title:  "rocksdb memtable_prefix_bloom_size_ratio 研究调优"
 date:   2018-09-10 20:41:00
 categories: rocksdb
 excerpt: rocksdb的memtable_prefix_bloom_size_ratio参数是控制memtable的filter大小
+mathjax: true
 ---
 * content
 {:toc}
@@ -14,8 +15,14 @@ filter是一个布隆过滤器，如果一个key不在memtable中，通过布隆
 
 ## filter
 
-memtable_prefix_bloom_bits表示filter占用总的bit数<br/>memtable_prefix_bloom_bits = write_buffer_size * memtable_prefix_bloom_size_ratio * 8<br/> write_buffer_size如果取值128M的话，memtable_prefix_bloom_size_ratio取值0.15，那么memtable_prefix_bloom_bits等于161061273，memtable_prefix_bloom_bits这个还会对齐取整<br/>
-如果bloom_locality>0，那么kNumBlocks=kTotalBits/CACHE_LINE_SIZE * 8，否则kNumBlocks=0，这个参数影响hash值散列位置<br/>默认的hash函数是BloomHash，一个key在布隆过滤器散列6次(写死的)。
+memtable_prefix_bloom_bits表示filter占用总的bit数<br/>
+
+>memtable_prefix_bloom_bits = write_buffer_size * memtable_prefix_bloom_size_ratio * 8
+
+write_buffer_size如果取值128M的话，memtable_prefix_bloom_size_ratio取值0.15，那么memtable_prefix_bloom_bits等于161061273，memtable_prefix_bloom_bits这个还会对齐取整，
+实际配置内存大小
+$$size=\lfloor{memtable\_prefix\_bloom\_bits}\rfloor/8$$
+<br/>默认的hash函数是BloomHash，一个key在布隆过滤器散列6次(写死的)。
 
 ## 测试
 
