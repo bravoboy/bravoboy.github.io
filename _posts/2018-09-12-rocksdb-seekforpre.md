@@ -34,4 +34,4 @@ data block里面存储实际数据，meta block存储是filter数据，index等�
 ![](/images/5.png)
 
 ## sst文件查找
-看了上面sst文件结构介绍，接下来介绍在sst文件里面查找key过程。L0层sst文件范围互相交叉。L1以及以下的文件是按照key的字典序排序，不会有交叉覆盖问题。对于L0查找，需要在所有的文件里面查找是否存在key，L1以及以下层首页要2分查找，找到对应的文件。然后在文件里面再2分查找，找到对应的block
+看了上面sst文件结构介绍，接下来介绍在sst文件里面查找key过程。L0层sst文件范围互相交叉。L1以及以下的文件是按照key的字典序排序，不会有交叉覆盖问题。对于L0查找，需要在所有的文件里面查找是否存在key，L1以及以下层首先要2分查找，找到对应的文件。然后在文件里面再2分查找，找到对应的block。线上开启了hashindex，所以会先查找hashindex，然后在查找data block。如果开启了total_order_seek选项，那么就不会走hashindex逻辑，直接2分查找. 最底层的是blockiter, 然后是LevelFileNumIterator定位文件. NewBloomFilterPolicy
