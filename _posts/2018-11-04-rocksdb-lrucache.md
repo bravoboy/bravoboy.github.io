@@ -9,7 +9,7 @@ categories: rocksdb
 
 ## 背景
 rocksdb里面的sst文件是存储在磁盘中的，每次从磁盘读数据有不小的代价，需要使用cache缓存热点数据，减少磁盘io。rocksdb里面使用是lru cache，详细解释lru策略，这里就不讲。参考[wiki](https://en.wikipedia.org/wiki/Cache_replacement_policies#Least_recently_used_(LRU))
-
+和一般的lru策略不同的时候，它还支持不同的优先级，优先淘汰低优先级数据。
 ## 数据结构
 节点
 
