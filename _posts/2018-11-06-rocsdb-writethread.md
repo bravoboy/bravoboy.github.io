@@ -8,8 +8,8 @@ categories: rocksdb
 {:toc}
 
 ## 背景
-rocksdb支持多线程写入，所有的写入操作会构造一个write_batch，但是内部写入还是串行操作，保证写入操作的顺序性，对于同时写入的多个write_batch，rocksdb内部会合并成一个大的batch，提供写入性能。
-同时外部写入的时候，可能会发生memtable写满切换以及wal文件写满切换操作，这个需要外部写入操作需要暂停等待切换操作完成，这些工作都是由write_thread完成，同时还负责保证写入操作的顺序性。
+当多线程并发写入rocksdb，所有的写入操作会构造一个write_batch，但是内部写入wal文件还是串行操作，保证写入操作的顺序性，写memtable可以并发写入，对于同时写入的多个write_batch，rocksdb内部会合并成一个大的batch，提供写入性能。
+同时外部写入的时候，可能会发生memtable写满切换以及wal文件写满切换操作，这个时候外部写入操作需要暂停等待切换操作完成(这个也是rocksdb毛刺的原因之一)，这些工作都是由write_thread完成，同时还负责保证写入操作的顺序性。
 
 #### 状态
 1. STATE_INIT = 1
@@ -19,9 +19,9 @@ rocksdb支持多线程写入，所有的写入操作会构造一个write_batch�
 5. STATE_COMPLETED = 16
 6. STATE_LOCKED_WAITING = 32
 
+初始是init状态，只有leader才有权限发起写操作，STATE_PARALLEL_MEMTABLE_WRITER专门给并发写memtable用的。
 #### 细节
-内部会维护一个队列，只有leader才可以写memtable和wal文件。如果设置了enable_pipelined_write，那么写wal和写memtable分开，可以提高写吞吐。STATE_MEMTABLE_WRITER_LEADER 和 STATE_PARALLEL_MEMTABLE_WRITER 这2个状态是写memtable相关的。
-
+内部会维护write group，把多个batch合并一起写入。如果设置了enable_pipelined_write，那么写wal和写memtable分开，可以提高写吞吐。batch如果是follower，那么只能等待leader唤醒。
 #### 数据结构
 ```
 struct Writer {
@@ -116,5 +116,7 @@ write_group单次批量写入队列，leader指向第一个写入的batch，last
   
 ## 资料
 1. http://mysql.taobao.org/monthly/2018/07/04/
+2. http://kernelmaker.github.io/Rocksdb_pipeline_write
+3. https://yq.aliyun.com/articles/409102
   
    
