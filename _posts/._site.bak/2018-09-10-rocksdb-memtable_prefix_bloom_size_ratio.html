@@ -1,0 +1,59 @@
+<ul id="markdown-toc">
+  <li><a href="#布隆过滤器" id="markdown-toc-布隆过滤器">布隆过滤器</a></li>
+  <li><a href="#filter" id="markdown-toc-filter">filter</a></li>
+  <li><a href="#测试" id="markdown-toc-测试">测试</a></li>
+  <li><a href="#结论" id="markdown-toc-结论">结论</a></li>
+</ul>
+
+<h2 id="布隆过滤器">布隆过滤器</h2>
+
+<p>filter是一个布隆过滤器，如果一个key不在memtable中，通过布隆过滤器是可以检查出来的，但是不能验证key存在</p>
+
+<h2 id="filter">filter</h2>
+
+<p>memtable_prefix_bloom_bits表示filter占用总的bit数<br /></p>
+
+<blockquote>
+  <p>memtable_prefix_bloom_bits = write_buffer_size * memtable_prefix_bloom_size_ratio * 8</p>
+</blockquote>
+
+<p>write_buffer_size如果取值128M的话，memtable_prefix_bloom_size_ratio取值0.15，那么memtable_prefix_bloom_bits等于161061273，memtable_prefix_bloom_bits这个还会对齐取整，
+实际配置内存大小
+<script type="math/tex">size=\lfloor{memtable\_prefix\_bloom\_bits}\rfloor/8</script>
+<br />默认的hash函数是BloomHash，一个key在布隆过滤器散列6次(写死的)。</p>
+
+<h2 id="测试">测试</h2>
+
+<p>如果memtable_prefix_bloom_size_ratio&gt;0，插入的成本会增加，需要多插入一次布隆过滤器，查询的时候会先去布隆过滤器读取是否存在。如果不存在就直接return，可能存在再去读memtable。<br />
+写入2M个key,  key大小是10个字节。<br /></p>
+<table>
+        <tr>
+            <th>情况</th>
+            <th>开启bloom，使用自带的hash函数</th>
+            <th>开启bloom，使用murmur3 hash函数</th>
+            <th>不开启bloom</th>
+        </tr>
+        <tr>
+            <th>插入耗时</th>
+            <th>2636毫秒</th>
+            <th>3109毫秒</th>
+            <th>2446毫秒</th>
+        </tr>
+        <tr>
+            <th>查询不存在的key</th>
+            <th>2416毫秒</th>
+            <th>823毫秒</th>
+            <th>2229毫秒</th>
+        </tr>
+        <tr>
+            <th>查询存在的key</th>
+            <th>2786毫秒</th>
+            <th>3261毫秒</th>
+            <th>2601毫秒</th>
+        </tr>
+    </table>
+
+<h2 id="结论">结论</h2>
+
+<p>自带的bloomhash速度比murmur3 hash快，但是散列非常不均衡，murmur3 hash key冲突的概率 &lt; 1%<br />开启bloom，使用自带的hash函数效果不如不开启<br />使用murmur3 hash函数，查找不存在的key速度比不开启快，插入和查找存在的key速度比不开启慢</p>
+
