@@ -11,6 +11,65 @@ categories: rocksdb
 MemtabeList存储是immutable。immutable刷盘到L0文件可以并发执行
 
 ## 实现
+先说一下skiplist，rocksdb里面有2个skiplist，一个是来源于leveldb的原生实现，另外一个是InlineSkipList，rocksdb自己实现。
+那么为什么搞出2个skiplist呢？先来看看他们内部的Node有什么区别:
+```
+class Node {  // LevelDB SkipList
+  const Key          key_;
+  std::atomic<Node*> next_[1];
+}
+
+class Node {  // RocksDB InlineSkipList
+  std::atomic<Node*>  next_[1];
+}
+```
+可以看到InlineSkipList没有key这个变量，他把key存储在next数组里面。这里也不用担心二进制安全问题，rocksdb内部写入key的时候会在key前面写入key_size
+代码如下：
+```
+const char* Key() const { return reinterpret_cast<const char*>(&next_[1]); }
+```
+网上有一张图片很好说明数据存储结构，图片来自于https://zhuanlan.zhihu.com/p/29277585 ![pic.png](/images/6.png)
+
+同时还会把height值放在Node内存里面，真是节省内存呀。leveldb里面Node是在插入的时候决定height，rocksdb是在插入之前分配key空间的时候决定height所以需要临时保持height
+```
+memcpy(&next_[0], &height, sizeof(int));
+```
+用的时候代码也很有技巧：
+```
+Node* x = reinterpret_cast<Node*>(const_cast<char*>(key)) - 1;
+```
+通过key的地址强制转换成Node然后-1来找到真正的Node地址。
+
+再来看SkipList本身结构
+```
+class SkipList {
+  struct Node;
+  Node* const head_;
+  std::atomic<int> max_height_;
+  Node** prev_;
+  int32_t prev_height_;
+}
+class InlineSkipList {
+  struct Node;
+  struct Splice;
+  Node* const head_;
+  std::atomic<int> max_height_;
+  Splice* seq_splice_;
+}
+struct Splice { 
+  int height_ = 0;
+  Node** prev_;
+  Node** next_;
+};
+```
+InlineSkipList 多了seq_splice_，少了prev_数组，移动到Splice里面。
+
+Splice里面的prev和next数组用来存储插入key的时候的前缀和后缀，从最高层向下比较，可以有效减少比较范围
+
+因为Node里面key和next指针内存是连续的，所以InlineSkipList内存局部性会更好，对cpu-cache也更友好
+
+
+
 ```
 class MemTableList {
 private:
@@ -56,7 +115,7 @@ enum FlushStateEnum { FLUSH_NOT_REQUESTED, FLUSH_REQUESTED, FLUSH_SCHEDULED };
   bool ShouldFlushNow() const;
 };
 ```
-2019年继续加油！！！
+
 
 
 
