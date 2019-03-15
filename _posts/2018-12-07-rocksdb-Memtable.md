@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "rocksdb MemtableList 源码解析"
+title:  "rocksdb Memtable 源码解析"
 categories: rocksdb
 ---
 
@@ -8,10 +8,10 @@ categories: rocksdb
 {:toc}
 
 ## 背景
-MemtabeList存储是immutable。immutable刷盘到L0文件可以并发执行
+memtable存储最近写入数据，提供快速查找功能。达到一定大小后变成immutable，后台线程异步把immutable刷盘到L0文件
 
-## 实现
-先说一下skiplist，rocksdb里面有2个skiplist，一个是来源于leveldb的原生实现，另外一个是InlineSkipList，rocksdb自己实现。
+## SkipList
+memtable底层默认是skiplist，rocksdb里面有2个skiplist，一个是来源于leveldb的原生实现，另外一个是InlineSkipList，rocksdb自己实现。
 那么为什么搞出2个skiplist呢？先来看看他们内部的Node有什么区别:
 ```
 class Node {  // LevelDB SkipList
@@ -68,7 +68,16 @@ Splice里面的prev和next数组用来存储插入key的时候的前缀和后缀
 
 因为Node里面key和next指针内存是连续的，所以InlineSkipList内存局部性会更好，对cpu-cache也更友好
 
+memtable底层实现还可以是其他数据结构，rocksdb提供如下好几种：
+![memtable.png](/images/memtable_skiplist.png)
 
+
+## WriteBufferManager
+rocksdb可以设置memtable大小(write_buffer_size)和最多memtable个数(max_write_buffer_number)，总内存消耗=write_buffer_size * max_write_buffer_number。<br/>
+同样rocksdb也提供了设置总memtable大小db_write_buffer_size。 <br/>
+WriteBufferManager用来统计总内存消耗，判断是否需要flush。
+
+## MemTableList
 
 ```
 class MemTableList {
