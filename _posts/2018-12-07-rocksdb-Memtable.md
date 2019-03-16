@@ -75,10 +75,18 @@ memtable底层实现还可以是其他数据结构，rocksdb提供如下好几�
 ## WriteBufferManager
 rocksdb可以设置memtable大小(write_buffer_size)和最多memtable个数(max_write_buffer_number)，总内存消耗=write_buffer_size * max_write_buffer_number。<br/>
 同样rocksdb也提供了设置总memtable大小db_write_buffer_size。 <br/>
-WriteBufferManager用来统计总内存消耗，判断是否需要flush。
+WriteBufferManager用来统计总内存消耗，write的时候会判断是否需要flush。<br/>
+以下几种情况会导致switch memtable：
+![memtable_switch](/images/memtable_switch.jpg)
 
 ## MemTableList
+SwitchMemtable把当前memtable变成immutable，插入MemTableList中。下面几个参数和memtable个数相关<br/>
 
+max_write_buffer_number_to_maintain：默认是0，-1的时候取值max_write_buffer_number(事务db的时候会设置-1，内存毕竟比磁盘快，保存已经flush的memtable可以加速事务db冲突检查)，控制immutable总数，包括已经flush和没有flush，这个值>0的时候immutable被flush以后也不会立即释放内存。
+
+max_write_buffer_number： 控制immutable最大数，超过限制会触发限速写
+
+min_write_buffer_number_to_merge：控制最少几个immutable合并起来flush到L0，数量不够的时候flush会跳过这个cf。
 ```
 class MemTableList {
 private:
