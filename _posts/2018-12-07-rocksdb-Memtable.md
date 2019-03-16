@@ -76,8 +76,10 @@ memtable底层实现还可以是其他数据结构，rocksdb提供如下好几�
 rocksdb可以设置memtable大小(write_buffer_size)和最多memtable个数(max_write_buffer_number)，总内存消耗=write_buffer_size * max_write_buffer_number。<br/>
 同样rocksdb也提供了设置总memtable大小db_write_buffer_size。 <br/>
 WriteBufferManager用来统计总内存消耗，write的时候会判断是否需要flush。<br/>
-以下几种情况会导致switch memtable：
+以下几种情况会导致[switch memtable](https://bravoboy.github.io/2018/11/30/SwitchMemtable/)：
 ![memtable_switch](/images/memtable_switch.jpg)
+
+flush memtable相关细节可以看以前代码: https://bravoboy.github.io/2018/11/10/rocksdb-FlushMemtable/
 
 ## MemTableList
 SwitchMemtable把当前memtable变成immutable，插入MemTableList中。下面几个参数和memtable个数相关<br/>
