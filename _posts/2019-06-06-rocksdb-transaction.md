@@ -50,7 +50,7 @@ rocksdb 支持悲观事务和乐观事务。悲观事务使用互斥锁来保证
 - WriteCommitted <br/>
   事务提交以后才写memtable，优点：逻辑简单，缺点：对于大事务来说，write_batch占用内存会挺多的。2pc场景下，commit和prepare中间延时比较大，write_batch占用内存就更多了。
 - WritePrepared <br/>
-  对于非2pc场景并且没有开启two_write_queues，和writeCommitd没有大区别，唯一区别就是seq号，一个batch(batch里面没有重复key)共用一个seq号。2pc场景下和WriteCommitted最大区别，事务在prepare阶段就会直接写memtable和wal，同时seq号会增加，commit阶段只写transaction_name到wal文件里面，同时在commit_cache(数组大小2^23)里面插入commit_seq。<br/>
+  对于非2pc场景并且没有开启two_write_queues，和writeCommitd没有大区别，唯一区别就是seq号，一个batch(batch里面没有重复key)共用一个seq号。2pc场景下和WriteCommitted最大区别，事务在prepare阶段就会把write_batch里面数据直接写memtable和wal，同时seq号会增加，commit阶段只写transaction_name到wal文件里面，同时在commit_cache(数组大小2^23)里面插入commit_seq。<br/>
   重点说一下读操作和回滚操作。<br/>
   先介绍数据结构：<br/>
   - PreparedHeap 记录所有prepare事务的seq号，commit的成功后删除对应的prepare_seq
@@ -65,7 +65,7 @@ rocksdb 支持悲观事务和乐观事务。悲观事务使用互斥锁来保证
   回滚操作：<br/>
 	读取要回滚key最新提交事务的版本，然后再write一次覆盖事务之前写入的值。
 - WriteUnprepared
-
+  非2pc场景和WritePrepare一样，2pc场景里面prepare阶段和WritePrepare也类似，对于大事务，可以设置最大write_batch_size，超过限制了，就prepare提交一次，多了map记录更新的key和pre_seq。解决WritePrepare对于大事务占用内存很大问题。
 ## 乐观事务
 - 写操作<br/>
   会在map里面记录key和当前的seq号，同时会把写入数据放到内存中的write_batch，commit的时候会设置write的回调函数，回调函数检查冲突就会遍历map，如果当前memtable和immutable最小的seq号比我们的检查的seq号还大，说明事务执行期间，有数据刷盘到sst了，这个时候会简单返回TryAgain状态，这步是为了性能考虑，如果要去sst文件里面查找的话，速度会很慢，写操作是串行的，会阻塞其他写请求，所以让上层业务重试，可以增大max_write_buffer_number_to_maintain值，让保留memtable个数变大。否则去memtable和immutable中获取对应key的最大seq号，如果找不到说明不冲突，否则和之前记录的map中的seq号对比，比map中的seq号大，说明有其他写请求在这个事务期间修改了这个key，返回Busy状态，否则就是不冲突。检查完map中的所有key以后都不冲突的话就可以提交了。
