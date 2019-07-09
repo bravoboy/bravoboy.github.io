@@ -8,7 +8,7 @@ categories: rocksdb
 {:toc}
 
 ## 内容
-对于一个程序，日志是非常重要的，它可以帮忙我们分析程序运行的状态。rocksdb运行的时候会打印很多日志，这里说的log不是WAL文件，从日志中我们可以看到rocksdb的状态，所以我们有必要分析一下rocksdb的日志。rocksdb支持用户自定义log类。我们这里只分析默认的log行为。option里面有几个选项关于log文件，1. max_log_file_size 表示log文件最大值，超过以后会生成新log文件，默认0表示不限制。2. log_file_time_to_roll > 0 表示根据时间分割log，每天一个log文件。3. info_log_level 定义log级别，默认info。4. db_log_dir log文件存储目录。
+对于一个程序，日志是非常重要的，它可以帮忙我们分析程序运行的状态。rocksdb运行的时候会打印很多日志，这里说的log不是WAL文件，从日志中我们可以看到rocksdb的状态，所以我们有必要分析一下rocksdb的日志。rocksdb支持用户自定义log类。我们这里只分析默认的log行为。option里面有几个选项关于log文件，1. max_log_file_size 表示log文件最大值，超过以后会生成新log文件，默认0表示不限制。2. log_file_time_to_roll > 0 表示根据时间分割log。3. info_log_level 定义log级别，默认info。4. db_log_dir log文件存储目录。
 
 ```
 2019/06/10-16:54:30.163319 7f893640da60 RocksDB version: 6.1.1
