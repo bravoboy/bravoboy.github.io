@@ -55,7 +55,7 @@ log文件开头是时间戳，精确到us，后面是thread_id。
  94 2019/07/07-17:03:30.731507 7f340004fa60            Options.table_factory: BlockBasedTable
  95 2019/07/07-17:03:30.731557 7f340004fa60            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x1a292f0)
 ```
-rocksdb里面还定义了event_logger，表示某个事件的日志。格式如下：
+rocksdb里面还定义了event_logger，表示某个事件的日志。格式如下，job_id是原子变量，单调递增。
 ```
 2019/07/07-17:03:30.733725 7f340004fa60 EVENT_LOG_v1 {"time_micros": 1562490210733707, "job": 1, "event": "recovery_started", "log_files": [13, 18, 22,27]}
 ```
