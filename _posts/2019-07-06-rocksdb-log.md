@@ -63,10 +63,12 @@ rocksdb里面有一个参数Options.stats_dump_period_sec 默认设置了600s，
 ```
 2019/07/05-15:51:01.096971 7fd3474f3700 [WARN] [db/db_impl.cc:489]
 ** DB Stats **
-Uptime(secs): 618257.1 total, 304.1 interval
-Cumulative writes: 392M writes, 41G keys, 392M commit groups, 1.0 writes per commit group, ingest: 3324.02 GB, 5.51 MB/s
-Cumulative WAL: 392M writes, 0 syncs, 392027713.00 writes per sync, written: 3321.68 GB, 5.50 MB/s
-Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent
+Uptime(secs): 618257.1 total(从开始统计到当前时间秒数), 304.1 interval(距离上次统计间隔)
+下面这3行是累积值
+Cumulative writes: 392M writes(写入总batch数), 41G keys(写入key个数), 392M commit groups(组提交次数), 1.0 writes per commit group(平均每次组提交batch个数), ingest: 3324.02 GB(从开始统计累积写入数据量), 5.51 MB/s(平均每秒写入数据量)
+Cumulative WAL: 392M writes(写wal文件次数), 0 syncs(sync方式写入次数), 392027713.00 writes per sync, written: 3321.68 GB(累积写入WAL文件数据量), 5.50 MB/s(平均每秒写入WAL文件数据量)
+Cumulative stall: 00:00:0.000 H:M:S, 0.0 percent(因为stalling原因导致写耽搁时间,累积值)
+下面这3行是间隔值
 Interval writes: 309K writes, 28M keys, 309K commit groups, 1.0 writes per commit group, ingest: 2368.70 MB, 7.79 MB/s
 Interval WAL: 309K writes, 0 syncs, 309684.00 writes per sync, written: 2.31 MB, 7.79 MB/s
 Interval stall: 00:00:0.000 H:M:S, 0.0 percent
@@ -119,3 +121,4 @@ rocksdb.block.cache.index.bytes.evict COUNT : 721723192912
 rocksdb.block.cache.filter.miss COUNT : 4646930
 rocksdb.block.cache.filter.hit COUNT : 67442573
 ```
+rocksdb还提供了GetProperty(ColumnFamilyHandle* column_family,const Slice& property, std::string* value);函数实时获取db状态。
