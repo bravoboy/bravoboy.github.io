@@ -82,14 +82,14 @@ Level    Files   Size     Score Read(GB)  Rn(GB) Rnp1(GB) Write(GB) Wnew(GB) Mov
  Sum      3/0   619.86 KB   0.0     72.2     0.1     72.1      72.1      0.0       0.0 1039.4     28.1     28.0      2634      4266    0.617   1492M  2906K
  Int      0/0    0.00 KB   0.0      0.0     0.0      0.0       0.0      0.0       0.0   0.0      0.0      0.0         0         0    0.000       0      0
 Uptime(secs): 618257.1 total, 304.1 interval
-Flush(GB): cumulative 0.069, interval 0.000
-AddFile(GB): cumulative 0.000, interval 0.000
-AddFile(Total Files): cumulative 0, interval 0
-AddFile(L0 Files): cumulative 0, interval 0
-AddFile(Keys): cumulative 0, interval 0
-Cumulative compaction: 72.14 GB write, 0.12 MB/s write, 72.17 GB read, 0.12 MB/s read, 2634.2 seconds
+Flush(GB): cumulative 0.069(累积flush数据量), interval 0.000(间隔flush数据量)
+AddFile(GB): cumulative 0.000(累积Fastload导入数据量), interval 0.000(间隔Fastload导入数据量)
+AddFile(Total Files): cumulative 0(累积Fastload导入文件个数), interval 0(间隔Fastload导入文件个数)
+AddFile(L0 Files): cumulative 0(累积Fastload导入L0文件个数), interval 0(间隔Fastload导入L0文件个数)
+AddFile(Keys): cumulative 0(累积Fastload导入key数), interval 0(间隔Fastload导入key数)
+Cumulative compaction: 72.14 GB write(compact写数据量，包括memtable Flush到L0), 0.12 MB/s write, 72.17 GB read(compact读文件数据量，Memtable Flush到L0没有读数据量), 0.12 MB/s read, 2634.2 seconds(compact耗时，包括memtable Flush到L0)
 Interval compaction: 0.00 GB write, 0.00 MB/s write, 0.00 GB read, 0.00 MB/s read, 0.0 seconds
-Stalls(count): 0 level0_slowdown, 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
+Stalls(count): 0 level0_slowdown(发送次数), 0 level0_slowdown_with_compaction, 0 level0_numfiles, 0 level0_numfiles_with_compaction, 0 stop for pending_compaction_bytes, 0 slowdown for pending_compaction_bytes, 0 memtable_compaction, 0 memtable_slowdown, interval 0 total count
 
 ** File Read Latency Histogram By Level [default] **
 ** Level 0 read latency histogram (micros):
