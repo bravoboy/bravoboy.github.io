@@ -26,4 +26,9 @@ bottommost file compaction只选择最底层的sst文件，并且文件中有del
 
 CompactOnDeletionCollector构造函数只有2个参数:sliding_window_size和deletion_trigger。就是说如果在window_size里面delete key个数超过了deletion_trigger，那么就会把这个sst文件标识为need compaction。<br/>
 
-这个滑动窗口实现还是挺有意思的，比如说我们设置窗口大小256，deletion_trigger=16。我们最简单的实现是每256个key，重新计数delete key个数，这样朴素方法无法统计分区临界点数据，比如说前一个窗口末尾有10个delete key，后一个窗口开头有10个delete key，这种场景是不能被标识处理。想要精确统计的话，我们可以申请一个window_size大小的循环数组，每key都映射到数组里面的一个元素，然后每次更新数组以后，都统计一下数组里面当前的delete key数量。rocksdb采用了折中方法，申请了128大小的循环数组，bucket_size = window_size / 128, bucket_size个元素对应到循环数组里面一个元素。
+这个滑动窗口实现还是挺有意思的，比如说我们设置窗口大小256，deletion_trigger=16。我们最简单的实现是每256个key，重新计数delete key个数，这样朴素方法无法统计分区临界点数据，比如说前一个窗口末尾有10个delete key，后一个窗口开头有10个delete key，这种场景是不能被标识处理。想要精确统计的话，我们可以申请一个window_size大小的循环数组，每key都映射到数组里面的一个元素，然后每次更新数组以后，都统计一下数组里面当前的delete key数量。rocksdb采用了折中方法，申请了128大小的循环数组，bucket_size = window_size / 128, bucket_size个元素对应到循环数组里面一个元素。<br/>
+
+每次compact生成新的文件的时候都会判断新文件是否需要need compaction。在LOG里面会打印类似信息:
+```
+2019/10/09-16:44:28.062404 7f3ba931b700 [db/compaction_job.cc:1133] [default] [JOB 4202] Generated table #27486121: 430042 keys, 135440918 bytes (need compaction)
+```

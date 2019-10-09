@@ -121,4 +121,14 @@ rocksdb.block.cache.index.bytes.evict COUNT : 721723192912
 rocksdb.block.cache.filter.miss COUNT : 4646930
 rocksdb.block.cache.filter.hit COUNT : 67442573
 ```
-rocksdb还提供了GetProperty(ColumnFamilyHandle* column_family,const Slice& property, std::string* value);函数实时获取db状态。
+rocksdb还提供了GetProperty(ColumnFamilyHandle* column_family,const Slice& property, std::string* value);函数实时获取db状态。<br/>
+
+```
+2019/10/09-16:44:25.842335 7f3b9cb19700 (Original Log Time 2019/10/09-16:44:25.841912) [db/db_impl_compaction_flush.cc:140] [default] Level summary: base level 1 max bytes base 268435456 files[10 147 516 762 344 0 0] max score 27.21 (1386 files need compaction)
+```
+这个log显示每层文件个数，以及多少个文件需要compaction<br/>
+
+```
+2019/10/09-16:44:29.126771 7f3ba931b700 (Original Log Time 2019/10/09-16:44:29.125613) [db/compaction_job.cc:622] [default] compacted to: base level 1 max bytes base 268435456 files[10 146 516 762 344 0 0] max score 26.95 (1383 files need compaction), MB/sec: 61.5 rd, 52.5 wr, level 2, files in(1, 3) out(3) MB in(64.3, 304.4) out(314.7), read-write-amplify(10.6) write-amplify(4.9) OK, records in: 1015689, records dropped: 24192
+```
+这个log除了显示每层文件个数，还显示了读写byte数，写byte总数就是输出文件总大小，读写放大倍数，写放大倍数=写byte总数/非输出level的byte总数，读写放大倍数=写总数+输入byte总数/非输出level的byte总数，compaction输入key个数，compaction过程中丢弃key个数
