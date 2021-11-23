@@ -8,7 +8,7 @@ categories: rocksdb
 {:toc}
 
 ## 背景
-最近线上遇到2次报警，登录机器查看，发现所有线程cpu百分比，不响应任何命令，和之前的排查过的[死锁](https://bravoboy.github.io/2018/09/11/rocksdb-deadlock/) 现象。<br/>
+最近线上遇到2次报警，登录机器查看，发现所有线程cpu百分比，不响应任何命令，和之前的排查过的[死锁](https://bravoboy.github.io/2018/09/11/rocksdb-deadlock/) 很像。<br/>
 直接使用pstack命令查看堆栈信息，发现确实出现死锁。<br/>
 
 ## 死锁1
