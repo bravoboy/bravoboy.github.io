@@ -563,3 +563,6 @@ static inline void rw_lock_sx_unlock_func(
   }
 }
 ```
+
+## 参考资料
+http://mysql.taobao.org/monthly/2020/04/02/
