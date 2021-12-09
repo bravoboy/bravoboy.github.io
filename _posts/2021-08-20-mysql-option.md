@@ -11,7 +11,8 @@ categories: innodb
 mysql有很多参数，innodb存储引擎也有自己独立的参数，这篇文章分析一下参数解析的流程。代码版本:8.0.13 <br/>
 
 ## mysql参数
-sys_vars.cc 里面定义了很多参数，各种类型都有，这些参数都是sys_var的子类，所有的参数在构造函数里面都会加到all_sys_vars链表中。 <br/>
+my_long_options里面定义了一些不修改，全局，系统启动的时候初始化一次的参数。my_long_options都可以放在sys_var.cc里面<br/>
+sys_vars.cc 里面定义了的参数可以动态修改，各种类型都有，可以是全局的，也可以是session级别的，这些参数都是sys_var的子类，所有的参数在构造函数里面都会加到all_sys_vars链表中。 <br/>
 在看实际参数之前，我们先学习一下 sys_var类的主要成员变量 <br/>
 ```
 class sys_var {
