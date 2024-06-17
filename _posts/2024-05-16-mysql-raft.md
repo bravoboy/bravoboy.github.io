@@ -60,3 +60,6 @@ buffer pool刷脏的时候同样也需要受到raft模块约束，要保证脏�
 可以看到事务执行过程中每次mtr生成日志，写入到log.buf以后，我们会并发的写磁盘redo log文件和传输日志到follower节点，写入follower节点的redo log文件，等多数派日志都落盘以后，事务就可以安全提交了。<br/>
 后面的文章再详细介绍各个模块的具体修改。<br/>
 
+### follower节点
+follower节点收到redo log以后会类似crash recover那样去apply redo log，同时我们需要限制follower节点只能apply 达成多数派的redo log。
+
